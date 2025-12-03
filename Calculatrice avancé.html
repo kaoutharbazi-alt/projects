@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrice Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .calculator {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 350px;
+            padding: 20px;
+        }
+        .display {
+            background: #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .previous-operation {
+            color: #888;
+            font-size: 18px;
+            min-height: 27px;
+            word-wrap: break-word;
+        }
+        .current-operation {
+            color: white;
+            font-size: 36px;
+            font-weight: 300;
+            margin-top: 5px;
+            word-wrap: break-word;
+            min-height: 45px;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 20px 0;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8f9fa;
+            color: #333;
+        }
+        button:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .operator {
+            background: #4dabf7;
+            color: white;
+        }
+        .operator:hover {
+            background: #339af0;
+        }
+        .equals {
+            background: #51cf66;
+            color: white;
+            grid-column: span 2;
+        }
+        .equals:hover {
+            background: #40c057;
+        }
+        .clear {
+            background: #ff6b6b;
+            color: white;
+        }
+        .clear:hover {
+            background: #fa5252;
+        }
+        .zero {
+            grid-column: span 2;
+        }
+        .decimal {
+            background: #adb5bd;
+            color: white;
+        }
+        .decimal:hover {
+            background: #868e96;
+        }
+        @media (max-width: 400px) {
+            .calculator {
+                padding: 15px;
+            }
+            button {
+                padding: 18px 0;
+                font-size: 20px;
+            }
+            .current-operation {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous-operation" id="previous-operation"></div>
+            <div class="current-operation" id="display">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearAll()">C</button>
+            <button class="operator" onclick="deleteLast()">⌫</button>
+            <button class="operator" onclick="addToDisplay('/')">÷</button>
+            <button class="operator" onclick="addToDisplay('*')">×</button>
+            <button onclick="addToDisplay('7')">7</button>
+            <button onclick="addToDisplay('8')">8</button>
+            <button onclick="addToDisplay('9')">9</button>
+            <button class="operator" onclick="addToDisplay('-')">−</button>
+            <button onclick="addToDisplay('4')">4</button>
+            <button onclick="addToDisplay('5')">5</button>
+            <button onclick="addToDisplay('6')">6</button>
+            <button class="operator" onclick="addToDisplay('+')">+</button>
+            <button onclick="addToDisplay('1')">1</button>
+            <button onclick="addToDisplay('2')">2</button>
+            <button onclick="addToDisplay('3')">3</button>
+            <button class="equals" onclick="calculate()">=</button>
+            <button class="zero" onclick="addToDisplay('0')">0</button>
+            <button class="decimal" onclick="addDecimal()">.</button>
+        </div>
+    </div>
+    <script>
+        let display = document.getElementById('display');
+        let previousDisplay = document.getElementById('previous-operation');
+        let currentInput = '0';
+        let previousValue = '';
+        let operator = '';
+        let waitingForNewValue = false;
+        // Ajouter un chiffre ou opérateur à l'affichage
+        function addToDisplay(value) {
+            if (currentInput === '0' || waitingForNewValue) {
+                currentInput = value;
+                waitingForNewValue = false;
+            } else {
+                currentInput += value;
+            }
+            display.textContent = currentInput;
+        }
+        // Ajouter un point décimal
+        function addDecimal() {
+            if (waitingForNewValue) {
+                currentInput = '0.';
+                waitingForNewValue = false;
+            } else if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+            display.textContent = currentInput;
+        }
+        // Effacer tout
+        function clearAll() {
+            currentInput = '0';
+            previousValue = '';
+            operator = '';
+            waitingForNewValue = false;
+            display.textContent = '0';
+            previousDisplay.textContent = '';
+        }
+        // Supprimer le dernier caractère
+        function deleteLast() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            display.textContent = currentInput;
+        }
+        // Calculer le résultat
+        function calculate() {
+            if (!previousValue || !operator) return;
+            let result;
+            const prev = parseFloat(previousValue);
+            const current = parseFloat(currentInput);
+            try {
+                switch(operator) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case '*':
+                        result = prev * current;
+                        break;
+                    case '/':
+                        if (current === 0) {
+                            throw new Error('Division par zéro');
+                        }
+                        result = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                // Mettre à jour l'historique
+                previousDisplay.textContent = `${previousValue} ${getOperatorSymbol(operator)} ${currentInput} =`;
+                // Afficher le résultat
+                currentInput = result.toString();
+                display.textContent = formatResult(result);
+                // Réinitialiser
+                operator = '';
+                previousValue = '';
+                waitingForNewValue = true;
+            } catch (error) {
+                display.textContent = 'Erreur';
+                currentInput = '0';
+                operator = '';
+                previousValue = '';
+                waitingForNewValue = false;
+                previousDisplay.textContent = '';
+            }
+        }
+        // Gestion des opérateurs
+        document.querySelectorAll('.operator').forEach(button => {
+            button.addEventListener('click', function() {
+                const op = this.textContent;
+                // Convertir les symboles d'affichage en opérateurs réels
+                let realOp;
+                switch(op) {
+                    case '÷': realOp = '/'; break;
+                    case '×': realOp = '*'; break;
+                    case '−': realOp = '-'; break;
+                    case '+': realOp = '+'; break;
+                    default: realOp = op;
+                }
+                if (previousValue && operator && !waitingForNewValue) {
+                    calculate();
+                }
+                operator = realOp;
+                previousValue = currentInput;
+                waitingForNewValue = true;
+                previousDisplay.textContent = `${previousValue} ${op}`;
+            });
+        });
+        // Helper functions
+        function getOperatorSymbol(op) {
+            const symbols = {
+                '+': '+',
+                '-': '−',
+                '*': '×',
+                '/': '÷'
+            };
+            return symbols[op] || op;
+        }
+        function formatResult(num) {
+            // Arrondir si trop de décimales
+            if (num.toString().includes('.') && num.toString().split('.')[1].length > 8) {
+                return num.toFixed(8).replace(/\.?0+$/, '');
+            }
+            return num;
+        }
+        // Gestion du clavier
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            // Chiffres
+            if (key >= '0' && key <= '9') {
+                addToDisplay(key);
+            }
+            // Opérateurs
+            else if (key === '+') {
+                document.querySelector('.operator[onclick*="+"]').click();
+            }
+            else if (key === '-') {
+                document.querySelector('.operator[onclick*="-"]').click();
+            }
+            else if (key === '*') {
+                document.querySelector('.operator[onclick*="*"]').click();
+            }
+            else if (key === '/') {
+                event.preventDefault();
+                document.querySelector('.operator[onclick*="/"]').click();
+            }
+            // Calcul
+            else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            }
+            // Effacer
+            else if (key === 'Escape' || key === 'Delete') {
+                clearAll();
+            }
+            // Backspace
+            else if (key === 'Backspace') {
+                deleteLast();
+            }
+            // Point décimal
+            else if (key === '.' || key === ',') {
+                addDecimal();
+            }
+        });
+        // Focus sur la calculatrice
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.calculator').focus();
+        });
+    </script>
+</body>
+</html>
